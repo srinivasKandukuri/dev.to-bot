@@ -17,4 +17,5 @@ type Post struct {
 	Link        string
 	PostLink    string
 	Description string
+	UserId      string
 }

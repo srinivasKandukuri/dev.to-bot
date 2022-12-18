@@ -31,6 +31,12 @@ func GetTopPosts(browser *rod.Browser, page *rod.Page, topPostsCount int) types.
 	myMap := make(types.Posts)
 	for i, ele := range elements {
 		fmt.Printf("Collecting data from element : %v\n", i)
+		e1 := ele.MustElements(".crayons-story__top .crayons-story__author-pic a")
+		user, _ := e1[0].Attribute("href")
+		if len(e1) > 1 {
+			user, _ = e1[1].Attribute("href")
+		}
+		userId := fmt.Sprintf("%s", strings.TrimPrefix(*user, `/`))
 		title := ele.MustElement("a").MustText()
 		link, _ := ele.MustElement("a").Attribute("href")
 		fullLink := fmt.Sprintf("%s%s", config.Urls["linkPrefix"], *link)
@@ -42,6 +48,7 @@ func GetTopPosts(browser *rod.Browser, page *rod.Page, topPostsCount int) types.
 			Link:        fullLink,
 			PostLink:    fmt.Sprintf("%s%s%s", "{% link https://dev.to", *link, " %}"),
 			Description: description,
+			UserId:      userId,
 		}
 		myMap[i] = p
 		if i == topPostsCount {
@@ -53,7 +60,7 @@ func GetTopPosts(browser *rod.Browser, page *rod.Page, topPostsCount int) types.
 	return myMap
 }
 
-func addNewPost(browser *rod.Browser, posts types.Posts, tag string, title string) {
+func addNewPost(browser *rod.Browser, posts types.Posts, tag string, title string) string {
 	fmt.Println("Navigating to NewPost")
 	newPage := browser.MustPage(config.Urls["createPost"]).MustWaitLoad()
 	utils.WaitToEnd(2)
@@ -77,11 +84,14 @@ func addNewPost(browser *rod.Browser, posts types.Posts, tag string, title strin
 	utils.WaitToEnd(2)
 	fmt.Println("Preparing Body")
 	body := ""
+	ids := ""
 	for _, v := range posts {
+		ids += "@" + v.UserId + " , "
 		body += "##" + v.Title + "\n"
 		body += v.Description + "\n"
 		body += v.PostLink + "\n"
 	}
+	ids += "& @c4r4x35 ."
 	newPage.Timeout(5 * time.Second).MustElement("#article_body_markdown").MustInput(body)
 	fmt.Println("Body entered")
 	utils.WaitToEnd(2)
@@ -101,47 +111,30 @@ func addNewPost(browser *rod.Browser, posts types.Posts, tag string, title strin
 			break
 		}
 	}
+	return ids
 }
 
-/*
-func AddHeaderImage(browser *rod.Browser) {
-	url := "https://dev.to/new"
-	page := browser.MustPage(url).MustWaitLoad()
-	time.Sleep(2 * time.Second)
-	fmt.Println("Page opened")
-	storjLogo, _ := filepath.Abs("./go.jpeg")
-	page.MustElement("input[type=file]").MustSetFiles(storjLogo)
-
-	page.SetDocumentContent()
-	textarea := page.Timeout(5 * time.Second).MustElements("textarea")
-	for _, b := range textarea {
-		t, err := b.Text()
-		if err != nil {
-			// error handling
-		}
-		if t == "New post title here..." {
-			b.MustInput("Top 5 Featured DEV Tag(#go) Posts from the Past Week")
-			break
-		}
+func AddComments(browser *rod.Browser, userIds string) {
+	fmt.Println("Adding comment to the published post.")
+	fmt.Println("Navigating to Dashboard.")
+	dashboardPage := browser.MustPage(config.Urls["dashboard"]).MustWaitLoad()
+	title := dashboardPage.MustElement(".crayons-title").MustText()
+	utils.AssertEquals(title, "Dashboard", "Dashboard title not matched, navigation into dashboard page went wrong.")
+	elem := dashboardPage.MustElements(".crayons-layout__content .crayons-card .dashboard-story.js-dashboard-story.spec__dashboard-story.single-article")[0]
+	elem.MustElement(".dashboard-story__title a").MustClick()
+	utils.WaitToEnd(3)
+	comment := fmt.Sprintf("Awesome articles by authors: %s  🙌", userIds)
+	fmt.Printf("adding comment Message : %s", comment)
+	dashboardPage.MustElement("#comments #comments-container #text-area").MustInput(comment)
+	//dashboardPage.MustSearch("Submit").MustClick()
+	elm := dashboardPage.MustElement("#comments #comments-container #new_comment .comment-form__buttons button.crayons-btn")
+	el := elm.MustAttribute("disabled")
+	if el == nil {
+		elm.MustClick()
+		utils.WaitToEnd(2)
+		fmt.Println("comment submitted successfully.")
 	}
-
-	buttons := page.MustElements("button")
-	for _, b := range buttons {
-		t, err := b.Text()
-		if err != nil {
-			// error handling
-		}
-		if t == "Publish" {
-			fmt.Println("Found Publish button")
-			b.MustClick().MustWaitLoad()
-			fmt.Println("Clicking on Publish")
-			fmt.Printf("============================END tag post : %s=========================\n", "go")
-			break
-		}
-	}
-
 }
-*/
 
 func main() {
 	fmt.Printf("Target website %s\n", config.Urls["target"])
@@ -152,9 +145,16 @@ func main() {
 	page := browser.MustPage(config.Urls["login"])
 	UserLogin(page, userEmail, userPassword)
 
-	for k, v := range config.Tags {
-		tagPage := OpenTagPage(browser, k, v)
+	for _, tag := range config.Tags {
+		fmt.Printf("******Started %s post ******", tag)
+		url := fmt.Sprintf(config.Urls["top"], tag)
+		tagPage := OpenTagPage(browser, tag, url)
 		posts := GetTopPosts(browser, tagPage, 4)
-		addNewPost(browser, posts, k, utils.GenerateRandomTitle(config.Titles))
+		title := utils.GenerateRandomTitle(config.Titles)
+		userIds := addNewPost(browser, posts, tag, title)
+		utils.WaitToEnd(5)
+		AddComments(browser, userIds)
+		fmt.Printf("******Completed %s post successfully******", tag)
 	}
+
 }
