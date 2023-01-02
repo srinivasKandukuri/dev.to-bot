@@ -2,7 +2,7 @@ package types
 
 type Posts map[int]Post
 
-type Tags map[string]Tag
+type Tags []Tag
 
 type Tag string
 

@@ -2,12 +2,12 @@ package main
 
 import (
 	"fmt"
+	"github.com/dev.to-bot/pkg"
 	"github.com/dev.to-bot/pkg/config"
 	"github.com/dev.to-bot/pkg/types"
 	"github.com/dev.to-bot/pkg/utils"
 	"github.com/go-rod/rod"
 	"github.com/go-rod/rod/lib/input"
-	"os"
 	"strings"
 	"time"
 )
@@ -137,24 +137,28 @@ func AddComments(browser *rod.Browser, userIds string) {
 }
 
 func main() {
-	fmt.Printf("Target website %s\n", config.Urls["target"])
-	userEmail := os.Getenv("USER_EMAIL")
-	userPassword := os.Getenv("USER_PASSWORD")
-	browser := rod.New().MustConnect()
-	defer browser.MustClose()
-	page := browser.MustPage(config.Urls["login"])
-	UserLogin(page, userEmail, userPassword)
+	/*
+		fmt.Printf("Target website %s\n", config.Urls["target"])
+		userEmail := os.Getenv("USER_EMAIL")
+		userPassword := os.Getenv("USER_PASSWORD")
+		browser := rod.New().MustConnect()
+		defer browser.MustClose()
+		page := browser.MustPage(config.Urls["login"])
+		UserLogin(page, userEmail, userPassword)
 
-	for _, tag := range config.Tags {
-		fmt.Printf("******Started %s post ******", tag)
-		url := fmt.Sprintf(config.Urls["top"], tag)
-		tagPage := OpenTagPage(browser, tag, url)
-		posts := GetTopPosts(browser, tagPage, 4)
-		title := utils.GenerateRandomTitle(config.Titles)
-		userIds := addNewPost(browser, posts, tag, title)
-		utils.WaitToEnd(5)
-		AddComments(browser, userIds)
-		fmt.Printf("******Completed %s post successfully******", tag)
-	}
+		for _, tag := range config.Tags {
+			fmt.Printf("******Started %s post ******", tag)
+			url := fmt.Sprintf(config.Urls["top"], tag)
+			tagPage := OpenTagPage(browser, tag, url)
+			posts := GetTopPosts(browser, tagPage, 4)
+			title := utils.GenerateRandomTitle(config.Titles)
+			userIds := addNewPost(browser, posts, tag, title)
+			utils.WaitToEnd(5)
+			AddComments(browser, userIds)
+			fmt.Printf("******Completed %s post successfully******", tag)
+		}
 
+	*/
+
+	pkg.NewApp("1.0")
 }
