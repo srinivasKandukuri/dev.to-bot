@@ -9,13 +9,11 @@ import (
 )
 
 func NewApp(version string) {
-
 	logger := zap.NewExample()
 	defer logger.Sync()
 	undo := zap.ReplaceGlobals(logger)
 	defer undo()
 	var scraper = baseScraper.NewScraper(logger)
-
 	userEmail := os.Getenv("USER_EMAIL")
 	userPassword := os.Getenv("USER_PASSWORD")
 	artifact := devArtifact.NewArtifact(scraper, userEmail, userPassword, config.Tags, config.Titles, config.Urls)

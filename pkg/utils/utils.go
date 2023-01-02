@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"github.com/dev.to-bot/pkg/types"
 	"math/rand"
 	"time"
 	"unicode"
@@ -33,8 +34,8 @@ func EllipticalTruncate(text string, maxLen int) string {
 	return text
 }
 
-func GenerateRandomTitle(titles []string) string {
+func GenerateRandomTitle(titles types.Titles) string {
 	rand.Seed(time.Now().Unix())
 	n := rand.Int() % len(titles)
-	return titles[n]
+	return string(titles[n])
 }
