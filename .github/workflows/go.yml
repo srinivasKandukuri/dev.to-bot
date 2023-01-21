@@ -1,4 +1,4 @@
-# This workflow will build a golang project
+# This workflow will build a golang project.
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
 
 name: Go
@@ -6,8 +6,8 @@ name: Go
 on:
   push:
     branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+  schedule:
+    - cron: '0 0 * * 0'
 
 jobs:
 
@@ -24,13 +24,9 @@ jobs:
         
     - name: Install dependencies
       run: |
-          go get .
-          go get github.com/go-rod/rod@v0.112.2
+          go get -d -u ./...
 
-    - run: go run main.go
-
-    - name: Build
-      run: go build -v ./...
+    - run: go run cmd/main.go
 
 
 

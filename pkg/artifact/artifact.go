@@ -166,7 +166,7 @@ func (a Artifact) AddComments(userIds string) {
 	elem := dashboardPage.MustElements(".crayons-layout__content .crayons-card .dashboard-story.js-dashboard-story.spec__dashboard-story.single-article")[0]
 	elem.MustElement(".dashboard-story__title a").MustClick()
 	utils.WaitToEnd(3)
-	comment := fmt.Sprintf("Shoutout to all the awesome authors featured in this years's Top 5 in 2022: %s 🙌.", userIds)
+	comment := fmt.Sprintf(config.Comment, userIds)
 	fmt.Printf("adding comment Message : %s", comment)
 	dashboardPage.MustElement("#comments #comments-container #text-area").MustInput(comment)
 	//dashboardPage.MustSearch("Submit").MustClick()
